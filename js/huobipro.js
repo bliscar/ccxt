@@ -22,11 +22,11 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchOHCLV': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchTradingLimits': true,
                 'withdraw': true,
             },
@@ -106,58 +106,10 @@ module.exports = class huobipro extends Exchange {
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetCommonSymbols',
+            },
         });
-    }
-
-    parseMarkets (markets) {
-        let numMarkets = markets.length;
-        if (numMarkets < 1)
-            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
-        let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let baseId = market['base-currency'];
-            let quoteId = market['quote-currency'];
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            let id = baseId + quoteId;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
-            };
-            let lot = Math.pow (10, -precision['amount']);
-            let maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            let taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'lot': lot,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
-                'limits': {
-                    'amount': {
-                        'min': lot,
-                        'max': Math.pow (10, precision['amount']),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
@@ -213,8 +165,57 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetCommonSymbols ();
-        return this.parseMarkets (response['data']);
+        let method = this.options['fetchMarketsMethod'];
+        let response = await this[method] ();
+        let markets = response['data'];
+        let numMarkets = markets.length;
+        if (numMarkets < 1)
+            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let baseId = market['base-currency'];
+            let quoteId = market['quote-currency'];
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            let id = baseId + quoteId;
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
+            let maker = (base === 'OMG') ? 0 : 0.2 / 100;
+            let taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'taker': taker,
+                'maker': maker,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -418,43 +419,28 @@ module.exports = class huobipro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let status = undefined;
-        if ('type' in params) {
-            status = params['type'];
-        } else if ('status' in params) {
-            status = params['status'];
-        } else {
-            throw new ExchangeError (this.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
-        }
-        if ((status === 0) || (status === 'open')) {
-            status = 'pre-submitted,submitted,partial-filled';
-        } else if ((status === 1) || (status === 'closed')) {
-            status = 'filled,partial-canceled,canceled';
-        } else {
-            status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
-        }
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
-            'states': status,
+            'states': states,
         }));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
-            'status': 0, // 0 for unfilled orders, 1 for filled orders
-        }, params));
+        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
-            'status': 1, // 0 for unfilled orders, 1 for filled orders
-        }, params));
+        return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
