@@ -25,22 +25,22 @@ require_once(__DIR__ . '/../classes/Utility.php');
 use MathPHP\Statistics\Average;
 
 
-$exchange = new \ccxt\bitmexSam();
+$exchange = new \ccxt\bitmex();
 
 
 //NeerajTest
-$exchange->apiKey = 'Bd1DKQOJ3MuqZPjv5QcznfYW';
-$exchange->secret = 'qBJQyCwboT3nlPZ2lxnHEAOrBJvIm2f1sodXcXgoWFlAdfh7';
-
-//AnuragMain
-//$exchange->apiKey = 'PeSLxxp7MEZ06ujwf_NPEz4G';
-//$exchange->secret = 'n1RAC2Euprc5otU2N0Jlsb8ZBfzaQfLnpRfID2Blm7Oxc5y0';
-
-//$balance = $exchange->fetch_balance ();
-//var_dump ($balance);
+//$exchange->apiKey = 'Bd1DKQOJ3MuqZPjv5QcznfYW';
+//$exchange->secret = 'qBJQyCwboT3nlPZ2lxnHEAOrBJvIm2f1sodXcXgoWFlAdfh7';
 //
-//print_r ($exchange->has); // or var_dump
-//exit;
+//AnuragMain
+$exchange->apiKey = 'PeSLxxp7MEZ06ujwf_NPEz4G';
+$exchange->secret = 'n1RAC2Euprc5otU2N0Jlsb8ZBfzaQfLnpRfID2Blm7Oxc5y0';
+
+$balance = $exchange->fetch_balance ();
+var_dump ($balance);
+
+print_r ($exchange->has); // or var_dump
+exit;
 
 $symbol = 'BTC/USD';
 //$start_range_timestamp_string = strtotime('2018-04-09 00:00:00').'000';

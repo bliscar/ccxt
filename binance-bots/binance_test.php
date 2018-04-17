@@ -68,7 +68,6 @@ $value_data = array();
 $i_counter = 0;
 foreach($difference as $data){
     $date_data[] = strval(date("Y-m-d H:i:s",$data['timestamp']/1000));
-//    $date_data[] = $data['timestamp']/1000;
     $value_data[] = $data['value'];
 //    $i_counter++;
 //    if($i_counter == 10)
