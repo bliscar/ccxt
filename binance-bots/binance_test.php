@@ -43,7 +43,7 @@ $duration = $_GET['duration'];
 $start_date = strtotime('2017-06-30 00:00:00').'000';
 
 //$ethbtc = \ccxt\binance\Utility::fetchRangeOHLCVbinance($exchange,'1h','ETH/BTC',$start_date);
-$eosbtc = \ccxt\binance\Utility::fetchRangeOHLCVbinance($exchange,$duration,'ETH/BTC',$start_date);
+$eosbtc = \ccxt\binance\Utility::fetchRangeOHLCVbinance($exchange,$duration,'EOS/BTC',$start_date);
 
 
 $eosbtc20 = \ccxt\binance\Utility::exponentialMovingAverageKeys($eosbtc['closes_index'], 20);

@@ -267,6 +267,32 @@ class bitmexSam extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_positions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null)
+            $request['startTime'] = $this->iso8601 ($since);
+        if ($limit !== null)
+            $request['count'] = $limit;
+        $request = array_replace_recursive ($request, $params);
+        // why the hassle? urlencode in python is kinda broken for nested dicts.
+        // E.g. self.urlencode(array ("filter" => array ("open" => True))) will return "filter=array ('open':+True)"
+        // Bitmex doesn't like that. Hence resorting to this hack.
+        if (is_array ($request) && array_key_exists ('filter', $request))
+            $request['filter'] = $this->json ($request['filter']);
+//        $response_order = $this->privateGetOrder ($request);
+        $response_position = $this->privateGetPosition ($request);
+        
+//        $parsed_order = $this->parse_orders($response_order, $market, $since, $limit);
+//        $parsed_position = $this->parse_orders($response_position, $market, $since, $limit);
+        return $response_position;
+    }
+
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $filter_params = array ( 'filter' => array ( 'open' => true ));
         return $this->fetch_orders($symbol, $since, $limit, array_replace_recursive ($filter_params, $params));
