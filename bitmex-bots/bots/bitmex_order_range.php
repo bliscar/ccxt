@@ -84,10 +84,8 @@ if($bitmex_bot_status[0][on_status] == 1){
                             $res_buy_pos = $exchange->create_limit_buy_order($symbol_perpetual,2*$amount, $long);
                         }
                     }
-                }else{
-                    //**//
-                    //This should not happen //
-                    //**//
+                }else if(count($open_orders)==0){
+                    $res_buy_pos = $exchange->create_limit_buy_order($symbol_perpetual,2*$amount, $long);
                 }
             }else if($position['currentQty'] > 0){
                 //Long is open
@@ -97,13 +95,11 @@ if($bitmex_bot_status[0][on_status] == 1){
                         echo " in ";
                         if((abs($order['price'] - $short) < 1) && $order['side'] == 'sell' && (abs($order['amount'] - $amount)<1)){
                             $can_order = $exchange->cancel_order($order['id']);
-                            $res_buy_pos = $exchange->create_limit_sell_order($symbol_perpetual,2*$amount, $short);
+                            $res_sell_pos = $exchange->create_limit_sell_order($symbol_perpetual,2*$amount, $short);
                         }
                     }
-                }else{
-                    //**//
-                    //This should not happen //
-                    //**//
+                }else if(count($open_orders)==0){
+                    $res_sell_pos = $exchange->create_limit_sell_order($symbol_perpetual,2*$amount, $short);
                 }
             }else{
                 //**//
