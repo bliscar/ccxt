@@ -82,10 +82,12 @@ if($bitmex_bot_status[0][on_status] == 1){
                         if((abs($order['price'] - $long) < 1) && $order['side'] == 'buy' && (abs($order['amount'] - $amount)<1)){
                             $can_order = $exchange->cancel_order($order['id']);
                             $res_buy_pos = $exchange->create_limit_buy_order($symbol_perpetual,2*$amount, $long);
+                            echo " 1 ";
                         }
                     }
                 }else if(count($open_orders)==0){
                     $res_buy_pos = $exchange->create_limit_buy_order($symbol_perpetual,2*$amount, $long);
+                    echo " 2 ";
                 }
             }else if($position['currentQty'] > 0){
                 //Long is open
@@ -96,10 +98,12 @@ if($bitmex_bot_status[0][on_status] == 1){
                         if((abs($order['price'] - $short) < 1) && $order['side'] == 'sell' && (abs($order['amount'] - $amount)<1)){
                             $can_order = $exchange->cancel_order($order['id']);
                             $res_sell_pos = $exchange->create_limit_sell_order($symbol_perpetual,2*$amount, $short);
+                            echo " 3 ";
                         }
                     }
                 }else if(count($open_orders)==0){
                     $res_sell_pos = $exchange->create_limit_sell_order($symbol_perpetual,2*$amount, $short);
+                    echo " 4 ";
                 }
             }else{
                 //**//
@@ -114,9 +118,12 @@ if($bitmex_bot_status[0][on_status] == 1){
     else{
         $res_buy = $exchange->create_limit_buy_order($symbol_perpetual, $amount, $long);
         $res_sell = $exchange->create_limit_sell_order($symbol_perpetual, $amount, $short);
+        echo " 5 ";
     }
 }else if($bitmex_bot_status[0][on_status] == -1){
    //
+    echo " 6 ";
 }
 
-
+echo " 7 ";
+echo " done ";
