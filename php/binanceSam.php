@@ -484,6 +484,22 @@ class binanceSam extends Exchange {
         return $this->parse_tickers ($rawTickers, $symbols);
     }
 
+    public function fetch_tickers_on_quote ($quote) {
+        $tickers = $this->fetch_tickers();
+        $tickers_to_return = array();
+        foreach($tickers as $key => $ticker){
+            $last_3 = substr(strtolower($ticker['symbol']), -3);
+            $last_3_quote = strtolower($quote);
+            if( $last_3 != $last_3_quote){
+                unset($tickers[$key]);
+            }else{
+                $new_key = str_replace("/BTC","",$key);
+                $tickers_to_return[$new_key] = $ticker;
+            }
+        }
+        return $tickers_to_return;
+    }
+
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0],
