@@ -1,3 +1,4 @@
+
 <html>
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -13,45 +14,95 @@
 /**
  * Created by PhpStorm.
  * User: neerajudai
- * Date: 25/4/18
- * Time: 2:42 AM
+ * Date: 27/4/18
+ * Time: 3:33 AM
  */
 date_default_timezone_set ('UTC');
 include_once __DIR__.'/../../ccxt.php';
 require_once(__DIR__ . '/../../vendor/autoload.php');
 require_once(__DIR__ . '/../classes/Utility.php');
 require_once(__DIR__ . '/../../samriddhee_db/classes/botStatusDAO.php');
+require_once(__DIR__ . '/../../samriddhee_db/classes/bitmexSymbolsDAO.php');
+require_once(__DIR__ . '/../../samriddhee_db/classes/bitmexApiKeysDAO.php');
+require_once(__DIR__ . '/../../../sam-tech/constants/bmx_apis.php');
 use MathPHP\Statistics\Average;
 
-$exchange = new \ccxt\bitmexSam(); //TestNet
-//$exchange = new \ccxt\bitmex();      //MainNet
+$data_array = array();
+$data_array['net_value'] = 2;
+$bitmex_mainnet_status = botStatusDAO::getBitmexMainnetStatus();
+if($bitmex_mainnet_status[0][mainnet_on] == 1){
+    $net_status = 'ON';
+}else if($bitmex_mainnet_status[0][mainnet_on] == -1){
+    $net_status = 'OFF';
+}
+
+$bitmex_symbols = bitmexSymbolsDAO::getBitmexSymbols();
+foreach ($bitmex_symbols['bitmex_symbols'] as $key => $value){
+    if($value[running_status_main] == 1){
+        $net_symbol = $value[symbol];
+        break;
+    }
+}
+
+$bitmex_APIKey = bitmexApiKeysDAO::getBitmexApiKeys($data_array);
+foreach ($bitmex_APIKey['api_keys'] as $key1 => $value1){
+    if($value1[status] == 1){
+        $net_APIKey = $value1[user_name];
+        break;
+    }
+}
 
 
-//NeerajTest
+echo "<h2>Main Settings Of the Bot</h2>";
+echo "    
+          <table class = 'table table-hover'>
+                 <tr >
+                    <th colspan='20'>Main Settings</th>
+                </tr>   
+                <tr>
+                    <th>Mainnet Status</th>
+                    <th>Active Symbol</th>
+                    <th>API Keys</th>
+                </tr>
+          ";
+
+echo "      <tr>";
+
+echo            "
+                    <td id = 'tdMainnetStatus'>$net_status</td>
+                    <td>$net_symbol</td>
+                    <td>$net_APIKey</td>";
+
+echo           "
+                </tr>
+    ";
+
+
+echo "</table>";
+
+$exchange = new \ccxt\bitmex(); //Mainnet
+$exchange->apiKey = $apisapisapis[$net_APIKey][Key];
+$exchange->secret = $apisapisapis[$net_APIKey][Secret];
+
+
 $long = $_GET['long'];
-$long = 7500;
+//$long = 7500;
 $short = $_GET['short'];
-$short = 8500;
-$amount = 1000;
-$exchange->apiKey = 'Bd1DKQOJ3MuqZPjv5QcznfYW';
-$exchange->secret = 'qBJQyCwboT3nlPZ2lxnHEAOrBJvIm2f1sodXcXgoWFlAdfh7';
-//
-//////AnuragMain
-//$exchange->apiKey = 'PeSLxxp7MEZ06ujwf_NPEz4G';
-//$exchange->secret = 'n1RAC2Euprc5otU2N0Jlsb8ZBfzaQfLnpRfID2Blm7Oxc5y0';
-//
-//$balance = $exchange->fetch_balance ();
-//var_dump ($balance);
+//$short = 8500;
+//$amount = 1000;
 
-//print_r ($exchange->has); // or var_dump
-//exit;
 
-//$start_range = strtotime('2018-04-17 00:00:00').'000';
-$symbol_perpetual = 'BTC/USD';
+$symbol_perpetual = $net_symbol;
 $symbol_position = array();
-$symbol_position[] = 'XBTUSD';
+if($symbol_perpetual == 'BTC/USD'){
+    $symbol_position[] = 'XBTUSD';
+}else{
+    $symbol_position[] = $net_symbol;
+}
+
 
 $open_orders = $exchange->fetch_open_orders($symbol_perpetual);
+$current_balance = $exchange->fetch_balance();
 $open_positions = $exchange->fetch_positions();
 //$exchange->fe
 foreach ($open_positions as $key => $position){
@@ -158,14 +209,14 @@ foreach ($open_orders as $row){
 
 echo "</table>";
 
-echo "<br>";
+echo "<hr>";
 
 
-echo "<h4>Current Status of the bot </h4>";
-$bitmex_bot_status = botStatusDAO::getBitmexBotStatus();
-if($bitmex_bot_status[0][on_status] == 1){
+echo "<h4>Current Status of the Mainnet bot </h4>";
+$bitmex_bot_status = botStatusDAO::getBitmexMainnetStatus();
+if($bitmex_bot_status[0][mainnet_on] == 1){
     echo "<label class='success' type='label' id='labelStatusChange'  ><h3 ><font color='green'>ON</font></h3></label>";
-}else if($bitmex_bot_status[0][on_status] == -1){
+}else if($bitmex_bot_status[0][mainnet_on] == -1){
     echo "<label class='success' type='label' id='labelStatusChange'  ><h3><font color='red'>OFF</font></h3></label>";
 }
 
@@ -174,6 +225,7 @@ echo "<h4>Change the Status of the bot</h4>";
 echo "<button class='btn btn-danger' type='button' id='statusChange'  >Change Status</button>";
 echo "<br>";
 echo "<br>";
+
 
 $bitmex_range_bot_details = botStatusDAO::getBitmexRangeBotDetails();
 echo "    
@@ -199,8 +251,6 @@ echo            " <tr>
 
 echo "</table>";
 
-//exit;
-
 
 ?>
 
@@ -209,23 +259,29 @@ echo "</table>";
 
         $('#statusChange').click(function()
         {
-            
+
+
             $.ajax({
                 type:"GET",
-                url: "/../../samriddhee_ajax/bitmex_range_bot_ui_ajax.php",
+                url: "/../../samriddhee_ajax/bitmex_range_bot_ui_mainnet_ajax.php",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                data: {'command':'change_status'} ,
+                data: {'command':'change_mainnet_status'} ,
                 success: function(data) {
                     if(data == 500){
                         alert("Some Error Occurred");
                     }else{
-                        if(data.current_status == 1){
+                        console.log(data);
+                        if(data.current_mainnet_status == 1){
                             $('#labelStatusChange').empty();
+                            $('#tdMainnetStatus').empty();
                             $('#labelStatusChange').append("<h3 ><font color='green'>ON</font></h3>");
-                        }else if(data.current_status == -1){
+                            $('#tdMainnetStatus').append("<font color='green'>ON</font>");
+                        }else if(data.current_mainnet_status == -1){
                             $('#labelStatusChange').empty();
+                            $('#tdMainnetStatus').empty();
                             $('#labelStatusChange').append("<h3 ><font color='red'>OFF</font></h3>");
+                            $('#tdMainnetStatus').append("<font color='red'>OFF</font>");
                         }
                     }
                 }
@@ -233,6 +289,7 @@ echo "</table>";
             });
 
         });
+
 
         $('#butUpdateDetails').click(function()
         {
@@ -250,7 +307,7 @@ echo "</table>";
             {
                 $.ajax({
                     type:"GET",
-                    url: "/../../samriddhee_ajax/bitmex_range_bot_ui_ajax.php",
+                    url: "/../../samriddhee_ajax/bitmex_range_bot_ui_mainnet_ajax.php",
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     data: {'command':'change_range_details', 'long_price':long_price, 'short_price':short_price, 'amount':amount} ,
@@ -274,9 +331,10 @@ echo "</table>";
             {
                 alert("You pressed Cancel! Command Aborted!!");
             }
-            
+
 
         });
 
     });
 </script>
+

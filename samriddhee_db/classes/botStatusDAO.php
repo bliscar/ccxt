@@ -9,12 +9,13 @@ require_once (dirname(__FILE__)."/baseDAO.php");
 
 class botStatusDAO extends DAO
 {
-    public static function getBitmexBotStatus()
+
+    public static function getBitmexTestnetStatus()
     {
         $pdo = $GLOBALS['pdo'];
 
         try {
-            $query = $pdo->prepare("SELECT on_status from bots_status where bot_name  = 'bitmex_range_bot'");
+            $query = $pdo->prepare("SELECT testnet_on from bots_status where bot_name  = 'bitmex_range_bot'");
             $query->execute();
         } catch (PDOException $ex) {
             return 808;
@@ -23,22 +24,55 @@ class botStatusDAO extends DAO
         return $result;
     }
 
-    public static function toggleBitmexBotStatus()
+    public static function toggleBitmexTestnetStatus()
     {
         $pdo = $GLOBALS['pdo'];
 
         try {
-            $query = $pdo->prepare("update bots_status set on_status = -1*on_status where bot_name = 'bitmex_range_bot';");
+            $query = $pdo->prepare("update bots_status set testnet_on = -1*testnet_on where bot_name = 'bitmex_range_bot';");
         } catch (PDOException $ex) {
             return 808;
         }
 
         $query->execute();
 
-        $bitmex_bot_status = self::getBitmexBotStatus();
+        $bitmex_testnet_status = self::getBitmexTestnetStatus();
         $return_array = array();
         $return_array['return_code'] = 200;
-        $return_array['current_status'] = $bitmex_bot_status[0][on_status];
+        $return_array['current_testnet_status'] = $bitmex_testnet_status[0][testnet_on];
+        return $return_array;
+    }
+
+    public static function getBitmexMainnetStatus()
+    {
+        $pdo = $GLOBALS['pdo'];
+
+        try {
+            $query = $pdo->prepare("SELECT mainnet_on from bots_status where bot_name  = 'bitmex_range_bot'");
+            $query->execute();
+        } catch (PDOException $ex) {
+            return 808;
+        }
+        $result = $query->fetchAll(PDO::FETCH_ASSOC);
+        return $result;
+    }
+
+    public static function toggleBitmexMainnetStatus()
+    {
+        $pdo = $GLOBALS['pdo'];
+
+        try {
+            $query = $pdo->prepare("update bots_status set mainnet_on = -1*mainnet_on where bot_name = 'bitmex_range_bot';");
+        } catch (PDOException $ex) {
+            return 808;
+        }
+
+        $query->execute();
+
+        $bitmex_testnet_status = self::getBitmexMainnetStatus();
+        $return_array = array();
+        $return_array['return_code'] = 200;
+        $return_array['current_mainnet_status'] = $bitmex_testnet_status[0][mainnet_on];
         return $return_array;
     }
     

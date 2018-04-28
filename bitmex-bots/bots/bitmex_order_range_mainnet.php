@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: neerajudai
- * Date: 17/4/18
- * Time: 6:20 PM
+ * Date: 28/4/18
+ * Time: 1:13 PM
  */
 
 
@@ -29,16 +29,16 @@ require_once(__DIR__ . '/../../samriddhee_db/classes/bitmexApiKeysDAO.php');
 require_once(__DIR__ . '/../../../sam-tech/constants/bmx_apis.php');
 use MathPHP\Statistics\Average;
 
-$bitmex_testnet_status = botStatusDAO::getBitmexTestnetStatus();
-if($bitmex_testnet_status[0][testnet_on] == 1){
+$bitmex_mainnet_status = botStatusDAO::getBitmexMainnetStatus();
+if($bitmex_mainnet_status[0][mainnet_on] == 1){
 
 
     $data_array = array();
-    $data_array['net_value'] = 1;
+    $data_array['net_value'] = 2;
 
     $bitmex_symbols = bitmexSymbolsDAO::getBitmexSymbols();
     foreach ($bitmex_symbols['bitmex_symbols'] as $key => $value){
-        if($value[running_status_test] == 1){
+        if($value[running_status_main] == 1){
             $net_symbol = $value[symbol];
             break;
         }
@@ -53,7 +53,7 @@ if($bitmex_testnet_status[0][testnet_on] == 1){
     }
 
 
-    $exchange = new \ccxt\bitmexSam(); //Testnet
+    $exchange = new \ccxt\bitmex(); //Mainnet
     $exchange->apiKey = $apisapisapis[$net_APIKey][Key];
     $exchange->secret = $apisapisapis[$net_APIKey][Secret];
 
@@ -139,8 +139,8 @@ if($bitmex_testnet_status[0][testnet_on] == 1){
         $res_sell = $exchange->create_limit_sell_order($symbol_perpetual, $amount, $short);
         echo " 5 ";
     }
-}else if($bitmex_testnet_status[0][testnet_on] == -1){
-   //
+}else if($bitmex_mainnet_status[0][mainnet_on] == -1){
+    //
     echo " 6 ";
 }
 

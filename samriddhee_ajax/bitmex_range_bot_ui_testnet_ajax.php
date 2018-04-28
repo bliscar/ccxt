@@ -7,10 +7,12 @@
  */
 require_once(__DIR__ . '/../samriddhee_db/classes/botStatusDAO.php');
 
-if($_GET['command'] == 'change_status'){
-    $return_array = botStatusDAO::toggleBitmexBotStatus();
-}else if($_GET['command'] == 'change_range_details'){
+//$_GET['command'] = 'change_testnet_status'; // For Debugging
+
+if($_GET['command'] == 'change_range_details'){
     $return_array = botStatusDAO::updateBitmexRangeBotDetails($_GET);
+}else if($_GET['command'] == 'change_testnet_status'){
+    $return_array = botStatusDAO::toggleBitmexTestnetStatus();
 }
 
 if($return_array['return_code'] == 200)
