@@ -1,8 +1,6 @@
 
 <html>
-<script type="text/javascript">
-    document.write("\<script src='http://code.jquery.com/jquery-latest.min.js' type='text/javascript'>\<\/script>");
-</script>
+
 <script src="https://code.highcharts.com/highcharts.js"></script>
 
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
@@ -12,7 +10,13 @@
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <link href="http://cdn.datatables.net/1.10.0/css/jquery.dataTables.css" rel="stylesheet" media="screen">
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
 
+<link href="http://cdn.datatables.net/1.10.0/css/jquery.dataTables.css" rel="stylesheet" media="screen">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<script type="text/javascript" src="http://cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
 
 </html>
 
@@ -62,7 +66,7 @@ foreach ($balance['total'] as $key => $value){
 $total_btc_spent = 0;
 
 foreach($coins_with_positive_balance as $key => $value){
-    if(strtolower($key) == 'nebl')
+//    if(strtolower($key) == 'nebl')
     if(strtolower($key) == 'btc'){
         $coins_with_positive_balance[$key]['current_price'] = 1;
         $coins_with_positive_balance[$key]['btc_value_of_coin'] = $value[quantity];
@@ -93,7 +97,8 @@ foreach($coins_with_positive_balance as $key => $value){
 }
 
 echo "
-          <table class = 'table table-hover'>
+          <table class = 'table table-hover' id = 'portfolio'>
+          <thead>
                  <tr >
                     <th colspan='20'>Binance of $user</th>
                 </tr>
@@ -106,11 +111,13 @@ echo "
                     <th>BTC Value</th>
                     <th>BTC Cost</th>
                 </tr>
+           </thead>
           ";
 
 foreach ($coins_with_positive_balance as $key => $value){
     $percentage_profit = round(($value[current_price] - $value[avg_buy_price])/$value[avg_buy_price],4)*100;
-    echo        " <tr>
+    echo        " <tbody>
+                    <tr>
                         <td>$key</td>
                         <td>$value[quantity]</td>
                         <td>$value[avg_buy_price]</td>
@@ -129,7 +136,8 @@ echo        " <tr>
                         <td>Total</td>
                         <td>$total_bitcoins</td>
                         <td>$total_btc_spent</td>
-                  </tr>";
+                  </tr>
+                  </tbody>";
 
 echo "</table>";
 
@@ -225,6 +233,9 @@ echo "</table>";
 //            data: [<?php //echo join($value_data, ',') ?>//]
 //        }]
 //    });
+$(document).ready(function() {
+    $('#portfolio').DataTable();
 
+});
 
 </script>
