@@ -134,6 +134,7 @@ foreach ($coins_with_positive_balance as $key => $value){
     $percentage_profit = round(($value[current_price] - $value[avg_buy_price])/$value[avg_buy_price],4)*100;
     if(!$value[current_price])
         $percentage_profit = -1000;
+    $value[check] = $percentage_profit;
     echo        " 
                     <tr>
                         <td>$key</td>
@@ -159,6 +160,7 @@ echo "<table  class = 'table table-hover' id = 'portfolioTotal'>
                     <th>Quantity</th>
                     <th>Avg Buying Price</th>
                     <th>Current Price</th>
+                    <th>Last 24 Hr Price Change</th>
                     <th>Profit %</th>
                     <th>BTC Value</th>
                     <th>BTC Cost</th>
