@@ -81,6 +81,8 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
                         'query/deposit-withdraw',
+                        'margin/loan-orders', // 借贷订单
+                        'margin/accounts/balance', // 借贷账户详情
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -93,6 +95,10 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
+                        'dw/transfer-in/margin', // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin', // 借贷账户划出至现货账户
+                        'margin/orders', // 申请借贷
+                        'margin/orders/{id}/repay', // 归还借贷
                     ),
                 ),
             ),
@@ -567,10 +573,10 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $order['created-at'];
-        $amount = floatval ($order['amount']);
+        $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
         $remaining = $amount - $filled;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
         if ($filled)
@@ -672,12 +678,14 @@ class huobipro extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $this->check_address($address);
+        $currency = $this->currency ($code);
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,
-            'currency' => strtolower ($currency),
+            'currency' => $currency['id'],
         );
         if ($tag)
             $request['addr-tag'] = $tag; // only for XRP?

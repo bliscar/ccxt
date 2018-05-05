@@ -19,7 +19,7 @@ class hitbtc2 (hitbtc):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '2',
             'has': {
@@ -552,14 +552,14 @@ class hitbtc2 (hitbtc):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            lot = float(market['quantityIncrement'])
-            step = float(market['tickSize'])
+            lot = self.safe_float(market, 'quantityIncrement')
+            step = self.safe_float(market, 'tickSize')
             precision = {
                 'price': self.precision_from_string(market['tickSize']),
                 'amount': self.precision_from_string(market['quantityIncrement']),
             }
-            taker = float(market['takeLiquidityRate'])
-            maker = float(market['provideLiquidityRate'])
+            taker = self.safe_float(market, 'takeLiquidityRate')
+            maker = self.safe_float(market, 'provideLiquidityRate')
             result.append(self.extend(self.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -782,14 +782,14 @@ class hitbtc2 (hitbtc):
         if 'fee' in trade:
             currency = market['quote'] if market else None
             fee = {
-                'cost': float(trade['fee']),
+                'cost': self.safe_float(trade, 'fee'),
                 'currency': currency,
             }
         orderId = None
         if 'clientOrderId' in trade:
             orderId = trade['clientOrderId']
-        price = float(trade['price'])
-        amount = float(trade['quantity'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
         cost = price * amount
         return {
             'info': trade,
@@ -1089,9 +1089,3 @@ class hitbtc2 (hitbtc):
                         elif message == 'Duplicate clientOrderId':
                             raise InvalidOrder(self.id + ' ' + body)
             raise ExchangeError(self.id + ' ' + body)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
