@@ -66,16 +66,20 @@ if($bitmex_testnet_status[0][testnet_on] == 1){
 //$short = 8500;
     $amount = $bitmex_range_bot_details[0][amount];
 
-
     $balance = $exchange->fetch_markets();
     $symbole_array = array();
     foreach ($balance as $value){
         $symbole_array[] = $value[symbol];
     }
 
-    $symbol_perpetual = 'BTC/USD';
+    $symbol_perpetual = $net_symbol;
     $symbol_position = array();
-    $symbol_position[] = 'XBTUSD';
+
+    if($symbol_perpetual == 'BTC/USD'){
+        $symbol_position[] = 'XBTUSD';
+    }else{
+        $symbol_position[] = $net_symbol;
+    }
 
     $open_orders = $exchange->fetch_open_orders($symbol_perpetual);
     $open_positions = $exchange->fetch_positions();
