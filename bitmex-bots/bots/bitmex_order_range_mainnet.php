@@ -73,9 +73,15 @@ if($bitmex_mainnet_status[0][mainnet_on] == 1){
         $symbole_array[] = $value[symbol];
     }
 
-    $symbol_perpetual = 'BTC/USD';
+    $symbol_perpetual = $net_symbol;
     $symbol_position = array();
-    $symbol_position[] = 'XBTUSD';
+   // $symbol_position[] = 'XBTUSD';
+
+    if($symbol_perpetual == 'BTC/USD'){
+        $symbol_position[] = 'XBTUSD';
+    }else{
+        $symbol_position[] = $net_symbol;
+    }
 
     $open_orders = $exchange->fetch_open_orders($symbol_perpetual);
     $open_positions = $exchange->fetch_positions();
